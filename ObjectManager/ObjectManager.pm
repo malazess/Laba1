@@ -176,4 +176,9 @@ sub trim
     return $s;
 }
 
+sub exit
+{
+    exit;
+}
+
 return 1;
