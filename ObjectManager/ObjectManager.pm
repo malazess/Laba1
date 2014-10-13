@@ -10,9 +10,9 @@ my %attributes = (
 
 sub fill
 {
-     $objects{0} = {'name' => 'Petr', 'lastname' => 'Kuklianov', 'age' => 25};
-     $objects{1} = {'name' => 'Ilya', 'lastname' => 'Pastukhov', 'age' => 22};
-     $objects{2} = {'name' => 'Den', 'lastname' => 'Davidov', 'age' => 25};
+    $objects{0} = {'name' => 'Ilya', 'lastname' => 'Pastukhov', 'age' => 22};
+    $objects{1} = {'name' => 'Petr', 'lastname' => 'Kuklianov', 'age' => 25};
+    $objects{2} = {'name' => 'Den', 'lastname' => 'Davidoff', 'age' => 25};
 }
 
 sub add
@@ -27,14 +27,13 @@ sub add
     }
     
     my %obj;
+    $objects{$id} = {};
     foreach $key (keys %attributes) {
         print $attributes{$key} . ": ";
         my $value = <STDIN>;
         $value = trim($value);
-        $obj->{$key} = $value;
+        $objects{$id}->{$key} = $value;
     }
-    
-    $objects{$id} = $obj;
     
     print "Object is added.\n";
 }
@@ -49,19 +48,16 @@ sub edit
         return;
     }
     
-    my $obj = $objects{$id};
     foreach $key (keys %attributes) {
-        my $oldValue = $obj->{$key};
+        my $oldValue = $objects{$id}->{$key};
         print $attributes{$key} . " [$oldValue]: ";
         my $value = <STDIN>;
         $value = trim($value);
         if(length $value == 0) {
             $value = $oldValue;
         }
-        $obj->{$key} = $value;
+        $objects{$id}->{$key} = $value;
     }
-    
-    $objects{$id} = $obj;
     
     print "Object is changed.\n";
 }
@@ -107,42 +103,57 @@ sub list
 
 sub save
 {
-    my $defaultFile = 'objects';
-    print "Enter DB name [$defaultFile]: ";
-    my $fileName = <STDIN>;
-    $fileName = trim($fileName);
-    if(length $fileName == 0) {
-        $fileName = $defaultFile;
-    }
+    #my $defaultFile = 'objects';
+    #print "Enter DB name [$defaultFile]: ";
+    #my $fileName = <STDIN>;
+    #$fileName = trim($fileName);
+    #if(length $fileName == 0) {
+    #    $fileName = $defaultFile;
+    #}
+    
     # Запись в файл
-    my %db;
-    dbmopen(%db, $fileName, 0666);
+    use Fcntl;
+    use NDBM_File;
+
+    my %hash;
+    tie %hash, "NDBM_File", 'data',  
+                   O_RDWR|O_CREAT|O_EXCL, 0644;
     foreach $key (keys %objects)
     {
-        $db->{$key} = $objects{$key};
+        $hash{$key} = $objects{$key};
+        print $hash{$key}->{name};
     }
-    dbmclose(%db);
+    
+    untie %hash;
     
     print "Saved.\n";
 }
 
 sub load
 {
-    my $defaultFile = 'objects';
-    print "Enter DB name [$defaultFile]: ";
-    my $fileName = <STDIN>;
-    $fileName = trim($fileName);
-    if(length $fileName == 0) {
-        $fileName = $defaultFile;
-    }
+    #my $defaultFile = 'objects';
+    #print "Enter DB name [$defaultFile]: ";
+    #my $fileName = <STDIN>;
+    #$fileName = trim($fileName);
+    #if(length $fileName == 0) {
+    #    $fileName = $defaultFile;
+    #}
     
     # Чтение из файла
-
-    my %db;
-    dbmopen(%db, $fileName, 0666);
+    use Fcntl;
+    use NDBM_File;
     use Data::Dumper;
-    print Dumper($db);
-    dbmclose(%db);
+
+    my %hash;
+    tie %hash, "NDBM_File", 'data',  
+                   O_RDWR|O_CREAT|O_EXCL, 0644;
+    
+    foreach $key (keys %hash) {
+        print $hash{$key}; # ссылка на хеш
+    }
+    %objects = %hash;
+    
+    untie %hash;
     
     print "Loaded.\n";
 }
@@ -163,11 +174,6 @@ sub trim
 {
     my $s = shift; $s =~ s/^\s+|\s+$//g; 
     return $s;
-}
-
-sub exit
-{
-    exit;
 }
 
 return 1;
