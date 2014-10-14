@@ -103,13 +103,13 @@ sub list
 
 sub save
 {
-    #my $defaultFile = 'objects';
-    #print "Enter DB name [$defaultFile]: ";
-    #my $fileName = <STDIN>;
-    #$fileName = trim($fileName);
-    #if(length $fileName == 0) {
-    #    $fileName = $defaultFile;
-    #}
+    my $defaultFile = 'objects';
+    print "Enter DB name [$defaultFile]: ";
+    my $fileName = <STDIN>;
+    $fileName = trim($fileName);
+    if(length $fileName == 0) {
+        $fileName = $defaultFile;
+    }
     
     # Запись в файл
     use Fcntl;
@@ -131,13 +131,13 @@ sub save
 
 sub load
 {
-    #my $defaultFile = 'objects';
-    #print "Enter DB name [$defaultFile]: ";
-    #my $fileName = <STDIN>;
-    #$fileName = trim($fileName);
-    #if(length $fileName == 0) {
-    #    $fileName = $defaultFile;
-    #}
+    my $defaultFile = 'objects';
+    print "Enter DB name [$defaultFile]: ";
+    my $fileName = <STDIN>;
+    $fileName = trim($fileName);
+    if(length $fileName == 0) {
+        $fileName = $defaultFile;
+    }
     
     # Чтение из файла
     use Fcntl;
