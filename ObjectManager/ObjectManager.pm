@@ -112,19 +112,30 @@ sub save
     #}
     
     # Запись в файл
-    use Fcntl;
-    use NDBM_File;
 
     my %hash;
-    tie %hash, "NDBM_File", 'data',  
-                   O_RDWR|O_CREAT|O_EXCL, 0644;
+    dbmopen(%hash, 'data', 0666);
+    
+    my $template = '';
+    foreach $key (keys %attributes) {
+        $template .= 'u ';
+    }
     foreach $key (keys %objects)
     {
-        $hash{$key} = $objects{$key};
-        print $hash{$key}->{name};
+        my $code = 'pack("' . $template . '"';
+        foreach $attr (sort keys %attributes) {
+            my $c = '$objects{$key}->{' . $attr . '}';
+            $code .= ', ' . $c;
+        }
+        $code .= ');';
+        
+        my $packed;
+        eval '$packed = ' . $code;
+        
+        $hash{$key} = $packed;
     }
     
-    untie %hash;
+    dbmclose(%hash);
     
     print "Saved.\n";
 }
@@ -140,20 +151,33 @@ sub load
     #}
     
     # Чтение из файла
-    use Fcntl;
-    use NDBM_File;
-    use Data::Dumper;
 
+    use Data::Dumper;
+    
+    %objects = {};
+    
     my %hash;
-    tie %hash, "NDBM_File", 'data',  
-                   O_RDWR|O_CREAT|O_EXCL, 0644;
+    dbmopen(%hash, 'data', 0666);
     
-    foreach $key (keys %hash) {
-        print $hash{$key}; # ссылка на хеш
+    my $template = '';
+    foreach $key (keys %attributes) {
+        $template .= 'u ';
     }
-    %objects = %hash;
+    my @attr_keys = sort keys %attributes;
+    foreach $key (keys %hash) {
+        print 'ID: ' . $key . "\n";
+        my @d = unpack($template, $hash{$key});
+        print Dumper @d;exit;
+        $objects{$key} = {};
+        foreach $i (keys @d) {
+            $objects{$key}->{$attr_keys[$i]} = $d[$i];
+            print $attr_keys[$i] . ":";
+            print $objects{$key}->{$attr_keys[$i]};
+        }
+        print "\n\n";
+    }
     
-    untie %hash;
+    dbmclose(%hash);
     
     print "Loaded.\n";
 }
@@ -174,11 +198,6 @@ sub trim
 {
     my $s = shift; $s =~ s/^\s+|\s+$//g; 
     return $s;
-}
-
-sub exit
-{
-    exit;
 }
 
 return 1;
