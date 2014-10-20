@@ -10,9 +10,9 @@ my %attributes = (
 
 sub fill
 {
-    $objects{0} = {'name' => 'Ilya', 'lastname' => 'Pastukhov', 'age' => 22};
-    $objects{1} = {'name' => 'Petr', 'lastname' => 'Kuklianov', 'age' => 25};
-    $objects{2} = {'name' => 'Den', 'lastname' => 'Davidoff', 'age' => 25};
+    $objects{0} = {'name' => 'Petr', 'lastname' => 'Kuklianov', 'age' => 25};
+    $objects{1} = {'name' => 'Den', 'lastname' => 'Davidoff', 'age' => 25};
+    $objects{2} = {'name' => 'Ilya', 'lastname' => 'Pastukhov', 'age' => 22};
 }
 
 sub add
@@ -20,7 +20,7 @@ sub add
     my @ids = get_ids();
     my $id = 0;
     
-    if(length @ids != 0)
+    if(scalar @ids != 0)
     {
         $id = $ids[scalar @ids - 1]; # scalar @ids возвращает длину массива
         $id++;
@@ -91,6 +91,7 @@ sub list
         my $obj = $objects{$id};
         print "ID: ";
         printf("%-46s|\n", $id + 1);
+        
         foreach $key (keys $obj)
         {
             printf "%-20s", $attributes{$key} . ':';
@@ -103,28 +104,34 @@ sub list
 
 sub save
 {
-    #my $defaultFile = 'objects';
-    #print "Enter DB name [$defaultFile]: ";
-    #my $fileName = <STDIN>;
-    #$fileName = trim($fileName);
-    #if(length $fileName == 0) {
-    #    $fileName = $defaultFile;
-    #}
+    my $defaultFile = 'data';
+    print "Enter DB name [$defaultFile]: ";
+    my $fileName = <STDIN>;
+    $fileName = trim($fileName);
+    if(length $fileName == 0) {
+        $fileName = $defaultFile;
+    }
+    $fileName = 'data/' . $fileName;
     
-    # Запись в файл
+    if(-e $fileName . '.dir') {
+        unlink($fileName . '.dir');
+    }
+    if(-e $fileName . '.pag') {
+        unlink($fileName . '.pag');
+    }
 
     my %hash;
-    dbmopen(%hash, 'data', 0666);
+    dbmopen(%hash, $fileName, 0666);
     
     my $template = '';
     foreach $key (keys %attributes) {
-        $template .= 'u ';
+        $template .= 'u i ';
     }
     foreach $key (keys %objects)
     {
         my $code = 'pack("' . $template . '"';
         foreach $attr (sort keys %attributes) {
-            my $c = '$objects{$key}->{' . $attr . '}';
+            my $c = '$objects{$key}->{' . $attr . '}, 1';
             $code .= ', ' . $c;
         }
         $code .= ');';
@@ -142,39 +149,36 @@ sub save
 
 sub load
 {
-    #my $defaultFile = 'objects';
-    #print "Enter DB name [$defaultFile]: ";
-    #my $fileName = <STDIN>;
-    #$fileName = trim($fileName);
-    #if(length $fileName == 0) {
-    #    $fileName = $defaultFile;
-    #}
+    my $defaultFile = 'data';
+    print "Enter DB name [$defaultFile]: ";
+    my $fileName = <STDIN>;
+    $fileName = trim($fileName);
+    if(length $fileName == 0) {
+        $fileName = $defaultFile;
+    }
+    $fileName = 'data/' . $fileName;
     
-    # Чтение из файла
-
-    use Data::Dumper;
-    
-    %objects = {};
+    %objects = ();
     
     my %hash;
-    dbmopen(%hash, 'data', 0666);
+    dbmopen(%hash, $fileName, 0666);
     
     my $template = '';
     foreach $key (keys %attributes) {
-        $template .= 'u ';
+        $template .= 'u i ';
     }
     my @attr_keys = sort keys %attributes;
     foreach $key (keys %hash) {
-        print 'ID: ' . $key . "\n";
         my @d = unpack($template, $hash{$key});
-        print Dumper @d;exit;
         $objects{$key} = {};
-        foreach $i (keys @d) {
-            $objects{$key}->{$attr_keys[$i]} = $d[$i];
-            print $attr_keys[$i] . ":";
-            print $objects{$key}->{$attr_keys[$i]};
+        my $i = 0;
+        foreach $k (keys @d) {
+            if(($k % 2) != 0) {
+                next;
+            }
+            $objects{$key}->{$attr_keys[$i]} = $d[$k];
+            $i++;
         }
-        print "\n\n";
     }
     
     dbmclose(%hash);
@@ -200,4 +204,8 @@ sub trim
     return $s;
 }
 
+sub exit
+{
+    close;
+}
 return 1;
