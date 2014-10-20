@@ -104,18 +104,18 @@ sub list
 
 sub save
 {
-<<<<<<< HEAD
+
     my $defaultFile = 'data';
-=======
+
     my $defaultFile = 'objects';
->>>>>>> FETCH_HEAD
+
     print "Enter DB name [$defaultFile]: ";
     my $fileName = <STDIN>;
     $fileName = trim($fileName);
     if(length $fileName == 0) {
         $fileName = $defaultFile;
     }
-<<<<<<< HEAD
+
     $fileName = 'data/' . $fileName;
     
     if(-e $fileName . '.dir') {
@@ -124,12 +124,12 @@ sub save
     if(-e $fileName . '.pag') {
         unlink($fileName . '.pag');
     }
-=======
+
     
     # Запись в файл
     use Fcntl;
     use NDBM_File;
->>>>>>> FETCH_HEAD
+
 
     my %hash;
     dbmopen(%hash, $fileName, 0666);
@@ -160,30 +160,30 @@ sub save
 
 sub load
 {
-<<<<<<< HEAD
+
     my $defaultFile = 'data';
-=======
+
     my $defaultFile = 'objects';
->>>>>>> FETCH_HEAD
+
     print "Enter DB name [$defaultFile]: ";
     my $fileName = <STDIN>;
     $fileName = trim($fileName);
     if(length $fileName == 0) {
         $fileName = $defaultFile;
     }
-<<<<<<< HEAD
+
     $fileName = 'data/' . $fileName;
     
     %objects = ();
     
-=======
+
     
     # Чтение из файла
     use Fcntl;
     use NDBM_File;
     use Data::Dumper;
 
->>>>>>> FETCH_HEAD
+
     my %hash;
     dbmopen(%hash, $fileName, 0666);
     
@@ -228,8 +228,9 @@ sub trim
     return $s;
 }
 
+return 1;
+
 sub exit
 {
-    close;
+    exit;
 }
-return 1;
